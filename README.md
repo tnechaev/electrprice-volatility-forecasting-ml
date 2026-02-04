@@ -103,13 +103,13 @@ It is also important to check that the engineered features are not forward-looki
 
 ## 4. Validation Results
 
-Metric	                Value
-
-Train Spearman	        ~0.55
-Test Spearman	        ~0.29
-Holdout rank Spearman	0.241
-Pure ML (no GARCH)	0.091
-Permutation p-value	0.006
+| Metric	      | Value |
+----------------------|-------|
+Train Spearman	      | ~0.55 |
+Test Spearman	      | ~0.29 |
+Holdout rank Spearman |	0.241 |
+Pure ML (no GARCH)    |	0.091 |
+Permutation p-value   |	0.006 |
 
 Interpretation:
 
@@ -130,11 +130,12 @@ Predictions are converted into a relative volatility spread strategy:
 
 ### Results (with costs)
 
-Metric	                Value
-Sharpe	                2.23
-Max drawdown	        −10.8
-Avg daily turnover	0.66
-Optimized Sharpe	2.86
+| Metric	     |  Value |
+|--------------------|--------|
+| Sharpe	     |  2.23  |
+| Max drawdown	     |  −10.8 |
+| Avg daily turnover |	0.66  |
+| Optimized Sharpe   |	2.86  |
 
 This reflects a realistic relative-volatility arbitrage strategy.
 
