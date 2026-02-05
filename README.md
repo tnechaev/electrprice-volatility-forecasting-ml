@@ -53,7 +53,7 @@ For each country:
 
 ### ML gradient-boosted decision trees on residual volatility
 
-I use XGBoost in rolling windows for training on **residual volatility = realized_volatility - GARCH_forecast** with exogenous drivers. 
+I use XGBoost in rolling windows for training on **residual volatility = realized_volatility - GARCH_forecast** with additional variables. 
 Please see notebook for specific hyperparameter selection.
 
 **Why XGBoost?**
@@ -64,7 +64,7 @@ Please see notebook for specific hyperparameter selection.
 
 - Good performance in small, noisy datasets with sufficient overfitting control
 
-Residuals are then smoothened (time-backwards) to reduce microstructure noise and improve rank stability.
+Residuals for forecasting are used as is. I also tested a 5-day-lagged rolling mean residual, which of course improves and stabilizes the ranking. But then the task becomes more of a trend-following, so for the day-ahead trades the economic usefulness may decrease.
 
 Window size for train is set to 280 days which is approx. 1 trading year -- stabilizes regime.
 Test/prediction window is 21 days -- monthly rebalancing horizon, less noisy. Generally, one would choose the windows to give the best stability-responsiveness tradeoff.
@@ -93,11 +93,9 @@ Fuel & merit order:
 Renewables regime:
 - REL_RENEWABLE
 
-One should aim to optimize the number, as well as the character of variables used. This project contains no automatic optimization, but it can be added in the future. 
-I tested many options, starting from including all raw + engineered variables I could come up with into the training, which definitely yielded sub-optimal results in the 0.06-0.12 test Spearman range,
-depending on the forecasting horizon chosen. Overfitting was also quite pronounced, keeping XGBoost hyperparameters fixed. I manually narrowed down the choice to the one you can see in the Notebook; adding or removing variables does not improve Spearman ranking.
+One should aim to optimize the number, as well as the character of variables used. Initially this project didn't have automatic feature selection to maximize the metric score, that is, test Spearman ranking, while keeping overfitting under control. Therefore, after many trials and errors of manual selection, I implemented an automatic procedure. This (very) significantly downselected the number of features to essentially the regime variables, not the exogenous drivers. For example, 1-day-lagged volatility itself, slow structural demand pressure etc. They in principle already absorbed all the effect of the exogenous factors. 
 
-It is also important to check that the engineered features are not forward-looking (no future data leakage into training dataset).
+It is also important to check that the **engineered features are not forward-looking** (no future data leakage into training dataset; if you train on t-1 and predict for t, no t-data should be contained in the variables).
 
 ---
 
@@ -105,16 +103,14 @@ It is also important to check that the engineered features are not forward-looki
 
 | Metric	      | Value |
 ----------------------|-------|
-Train Spearman	      | ~0.55 |
-Test Spearman	      | ~0.29 |
-Holdout rank Spearman |	0.241 |
-Pure ML (no GARCH)    |	0.091 |
-Permutation p-value   |	0.006 |
+Train Spearman	      | ~0.44 |
+Test Spearman	      | ~0.31 |
+Holdout rank Spearman |	~0.62 |
+Permutation p-value   |	0.002 |
 
 Interpretation:
 
-The model extracts statistically significant, persistent structure, including pure ML beyond GARCH.
-Performance is stable across time.
+The model extracts statistically significant, persistent structure, performance is stable across time. The model can correctly rank volatility on ~76% of days.
 
 ## 5. Trading Strategy
 
@@ -132,10 +128,10 @@ Predictions are converted into a relative volatility spread strategy:
 
 | Metric	     |  Value |
 |--------------------|--------|
-| Sharpe	     |  2.23  |
-| Max drawdown	     |  −10.8 |
-| Avg daily turnover |	0.66  |
-| Optimized Sharpe   |	2.86  |
+| Sharpe	     |  1.94  |
+| Max drawdown	     |  -8.37 |
+| Avg daily turnover |	0.82  |
+| Optimized Sharpe   |	2.39  |
 
 This reflects a realistic relative-volatility arbitrage strategy.
 
